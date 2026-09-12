@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bank Plastik V8.6 FINAL</title>
+<title>Bank Plastik V9.5 FINAL</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#059669">
 <script src="https://cdn.tailwindcss.com"></script>
@@ -10,150 +10,65 @@
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<style>.scrollbar-hide::-webkit-scrollbar{display:none}.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}@media print{.no-print{display:none!important}}</style>
+<style>.scrollbar-hide::-webkit-scrollbar{display:none}@media print{.no-print{display:none!important}}</style>
 </head>
 <body class="bg-slate-50">
 <div id="root"></div>
 <script type="text/babel">
 const {useState,useEffect}=React;
+function safeParse(k, fb){try{const r=localStorage.getItem(k); return r?JSON.parse(r):fb}catch(e){return fb}}
 function App(){
 const [tab,setTab]=useState("dashboard");
-const [identity,setIdentity]=useState(()=>{
-  const s=localStorage.getItem('bankIdV86');
-  return s?JSON.parse(s):{namaBank:"Bank Plastik Soreang",alamat:"Jl. Raya Soreang No.123",rt_rw:"01/02",kelurahan:"Soreang",kecamatan:"Soreang",penanggungJawab:"Dendi Sutendi",telp:"0812-xxxx-xxxx",logoBase64:""}
-});
-const [nasabah,setNasabah]=useState(()=>{
-  const s=localStorage.getItem('nsbV86');
-  return s?JSON.parse(s):[
-    {id:"NSB001",nama:"Siti Aminah",nik:"081211110001",rt_rw:"01/02",alamat:"Kp. Soreang",saldo:65000},
-    {id:"NSB002",nama:"Budi Santoso",nik:"081211110002",rt_rw:"01/03",alamat:"Kp. Soreang",saldo:0}
-  ]
-});
-const [transaksi,setTransaksi]=useState(()=>{
-  const s=localStorage.getItem('trxV86');
-  return s?JSON.parse(s):[
-    {id:"TRX1",idNasabah:"NSB001",tanggal:new Date().toISOString(),jenis:"setor",keterangan:"Botol 5Kg + Kardus 5Kg",detail:[{jenis:"Botol Plastik",kg:5,harga:3000,total:15000},{jenis:"Kardus",kg:5,harga:2000,total:10000}],totalRp:25000},
-    {id:"TRX2",idNasabah:"NSB001",tanggal:new Date().toISOString(),jenis:"setor",keterangan:"Botol 10Kg",detail:[{jenis:"Botol Plastik",kg:10,harga:3000,total:30000}],totalRp:30000},
-    {id:"TRX3",idNasabah:"NSB001",tanggal:new Date().toISOString(),jenis:"setor",keterangan:"Kardus 5Kg",detail:[{jenis:"Kardus",kg:5,harga:2000,total:10000}],totalRp:10000}
-  ]
-});
+const [identity,setIdentity]=useState(()=>safeParse('bankIdV95', safeParse('bankIdV92', safeParse('bankIdV91', {namaBank:"Bank Plastik Soreang",alamat:"Jl. Raya Soreang No.123",rt_rw:"01/02",kelurahan:"Soreang",kecamatan:"Soreang",kabupaten:"Bandung",penanggungJawab:"Dendi Sutendi",telp:"0812-3456-7890",logoBase64:""}))));
+const [nasabah,setNasabah]=useState(()=>safeParse('nsbV95', safeParse('nsbV92', [{id:"NSB001",nama:"Siti Aminah",saldo:65000},{id:"NSB002",nama:"Budi Santoso",saldo:0}])));
+const [transaksi,setTransaksi]=useState(()=>safeParse('trxV95', safeParse('trxV92', [{id:"TRX1",idNasabah:"NSB001",tanggal:new Date().toISOString(),jenis:"setor",keterangan:"Botol 5Kg + Kardus 5Kg",totalRp:25000}])));
 const [sampahMaster,setSampahMaster]=useState(()=>{
-  const s=localStorage.getItem('smpV86');
-  return s?JSON.parse(s):[{nama:"Botol Plastik",harga:3000,stokKg:20},{nama:"Kardus",harga:2000,stokKg:10},{nama:"Kresek",harga:1500,stokKg:0}]
+  const raw=safeParse('smpV95', safeParse('smpV92', null));
+  if(!raw) return [{nama:"Botol Plastik",hargaBeli:3000,hargaJual:5000,stokKg:20},{nama:"Kardus",hargaBeli:2000,hargaJual:3500,stokKg:10}];
+  return raw.map(x=>({nama:x.nama||"Jenis",hargaBeli:x.hargaBeli||x.harga||3000,hargaJual:x.hargaJual||((x.hargaBeli||x.harga||3000)+2000),stokKg:x.stokKg||0}));
 });
 const [sembakoMaster,setSembakoMaster]=useState(()=>{
-  const s=localStorage.getItem('smbV86');
-  return s?JSON.parse(s):[{nama:"Beras 1Kg",harga:12000,stok:50},{nama:"Minyak 1L",harga:15000,stok:30},{nama:"Gula 1Kg",harga:14000,stok:20},{nama:"Telur 1Kg",harga:28000,stok:10}]
+  const raw=safeParse('smbV95', safeParse('smbV92', null));
+  if(!raw) return [{nama:"Beras 1Kg",hargaBeli:10000,hargaJual:12000,stok:50},{nama:"Minyak 1L",hargaBeli:12000,hargaJual:15000,stok:30}];
+  return raw.map(x=>({nama:x.nama||"Sembako",hargaBeli:x.hargaBeli||x.harga||10000,hargaJual:x.hargaJual||((x.hargaBeli||x.harga||10000)+2000),stok:x.stok||0}));
 });
+const [kasTransaksi,setKasTransaksi]=useState(()=>safeParse('kasV95', safeParse('kasV92', [{id:"KAS1",tanggal:new Date().toISOString(),jenis:"modal_awal",keterangan:"Modal Awal",masuk:100000,keluar:0}])));
 const [search,setSearch]=useState(""); const [buku,setBuku]=useState(null);
+const [setorId,setSetorId]=useState(""); const [setorItems,setSetorItems]=useState([{jenis:"Botol Plastik",kg:""}]);
+const [tarikId,setTarikId]=useState(""); const [tarikMode,setTarikMode]=useState("tunai"); const [tarikRp,setTarikRp]=useState(""); const [tukarItems,setTukarItems]=useState([{nama:"Beras 1Kg",qty:""}]);
+const [jualItems,setJualItems]=useState([{jenis:"Botol Plastik",kg:""}]); const [jualKet,setJualKet]=useState("");
+const [beliItems,setBeliItems]=useState([{nama:"Beras 1Kg",qty:""}]); const [beliKet,setBeliKet]=useState("");
 
-// SETOR MULTI
-const [setorId,setSetorId]=useState("");
-const [setorItems,setSetorItems]=useState([{jenis:"Botol Plastik",kg:""}]);
-
-// TARIK
-const [tarikId,setTarikId]=useState("");
-const [tarikMode,setTarikMode]=useState("tunai"); // tunai or sembako
-const [tarikRp,setTarikRp]=useState("");
-const [tarikKet,setTarikKet]=useState("");
-const [tukarItems,setTukarItems]=useState([{nama:"Beras 1Kg",qty:""}]);
-
-useEffect(()=>localStorage.setItem('bankIdV86',JSON.stringify(identity)),[identity]);
-useEffect(()=>localStorage.setItem('nsbV86',JSON.stringify(nasabah)),[nasabah]);
-useEffect(()=>localStorage.setItem('trxV86',JSON.stringify(transaksi)),[transaksi]);
-useEffect(()=>localStorage.setItem('smpV86',JSON.stringify(sampahMaster)),[sampahMaster]);
-useEffect(()=>localStorage.setItem('smbV86',JSON.stringify(sembakoMaster)),[sembakoMaster]);
+useEffect(()=>{localStorage.setItem('bankIdV95',JSON.stringify(identity))},[identity]);
+useEffect(()=>{localStorage.setItem('nsbV95',JSON.stringify(nasabah))},[nasabah]);
+useEffect(()=>{localStorage.setItem('trxV95',JSON.stringify(transaksi))},[transaksi]);
+useEffect(()=>{localStorage.setItem('smpV95',JSON.stringify(sampahMaster))},[sampahMaster]);
+useEffect(()=>{localStorage.setItem('smbV95',JSON.stringify(sembakoMaster))},[sembakoMaster]);
+useEffect(()=>{localStorage.setItem('kasV95',JSON.stringify(kasTransaksi))},[kasTransaksi]);
 
 const handleLogo=(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setIdentity({...identity,logoBase64:ev.target.result});r.readAsDataURL(f)};
+const filtered=nasabah.filter(n=>{try{return n.nama.toLowerCase().includes(search.toLowerCase())}catch(e){return true}});
+const tabs=[{id:"dashboard",label:"Dashboard"},{id:"identitas",label:"Identitas"},{id:"nasabah",label:"Nasabah"},{id:"setor",label:"Setor"},{id:"tarik",label:"Tarik"},{id:"stok",label:"Stok"},{id:"jual",label:"Jual Plastik"},{id:"beli",label:"Beli Sembako"},{id:"keuangan",label:"Keuangan"},{id:"master",label:"Master"},{id:"laporan",label:"Laporan"},{id:"buku",label:"Buku"},{id:"export",label:"Export"}];
+const hb=s=>{try{return s.hargaBeli||s.harga||0}catch(e){return 0}};
+const hj=s=>{try{return s.hargaJual||((s.hargaBeli||s.harga||0)+2000)}catch(e){return 0}};
+const totalStokKg=sampahMaster.reduce((a,b)=>a+(b.stokKg||0),0);
+const totalNilaiBeli=sampahMaster.reduce((a,b)=>a+(b.stokKg||0)*hb(b),0);
+const totalNilaiJual=sampahMaster.reduce((a,b)=>a+(b.stokKg||0)*hj(b),0);
+const totalSaldo=nasabah.reduce((a,b)=>a+(b.saldo||0),0);
+const kasMasuk=kasTransaksi.reduce((a,b)=>a+(b.masuk||0),0);
+const kasKeluar=kasTransaksi.reduce((a,b)=>a+(b.keluar||0),0);
+const kasSaldo=kasMasuk-kasKeluar;
+const labaBersih=kasSaldo-totalSaldo;
 
-const filtered=nasabah.filter(n=>n.nama.toLowerCase().includes(search.toLowerCase())||n.id.toLowerCase().includes(search.toLowerCase()));
-const tabs=[{id:"dashboard",label:"Dashboard"},{id:"identitas",label:"Identitas"},{id:"nasabah",label:"Nasabah"},{id:"setor",label:"Setor"},{id:"tarik",label:"Tarik"},{id:"stok",label:"Stok"},{id:"keuangan",label:"Keuangan"},{id:"master",label:"Master"},{id:"laporan",label:"Laporan"},{id:"buku",label:"Buku"},{id:"export",label:"Export"}];
+const calcSetor=()=>setorItems.reduce((s,it)=>{const m=sampahMaster.find(x=>x.nama===it.jenis); return s+(parseFloat(it.kg)||0)*(m?hb(m):0)},0);
+const calcTukar=()=>tukarItems.reduce((s,it)=>{const m=sembakoMaster.find(x=>x.nama===it.nama); return s+(parseInt(it.qty)||0)*(m?hj(m):0)},0);
+const calcJual=()=>jualItems.reduce((s,it)=>{const m=sampahMaster.find(x=>x.nama===it.jenis); return s+(parseFloat(it.kg)||0)*(m?hj(m):0)},0);
+const calcBeli=()=>beliItems.reduce((s,it)=>{const m=sembakoMaster.find(x=>x.nama===it.nama); return s+(parseInt(it.qty)||0)*(m?hb(m):0)},0);
 
-const totalStok=sampahMaster.reduce((a,b)=>a+b.stokKg,0);
-const totalNilai=sampahMaster.reduce((a,b)=>a+b.stokKg*b.harga,0);
-const totalSaldo=nasabah.reduce((a,b)=>a+b.saldo,0);
-const totalSetor=transaksi.filter(t=>t.jenis==="setor").reduce((a,b)=>a+b.totalRp,0);
-const totalTarik=transaksi.filter(t=>t.jenis==="tarik").reduce((a,b)=>a+b.totalRp,0);
-const laba=totalNilai-totalSaldo;
-
-const calcSetorTotal=()=>{return setorItems.reduce((sum,it)=>{const m=sampahMaster.find(s=>s.nama===it.jenis); const h=m?m.harga:0; const kg=parseFloat(it.kg)||0; return sum+kg*h},0)};
-const calcTukarTotal=()=>{return tukarItems.reduce((sum,it)=>{const m=sembakoMaster.find(s=>s.nama===it.nama); const h=m?m.harga:0; const qty=parseInt(it.qty)||0; return sum+qty*h},0)};
-
-const doSetor=()=>{
-  if(!setorId){alert("Pilih nasabah");return}
-  const validItems=setorItems.filter(it=>it.kg&&parseFloat(it.kg)>0);
-  if(validItems.length===0){alert("Isi minimal 1 jenis dengan Kg >0");return}
-  const detail=validItems.map(it=>{const m=sampahMaster.find(s=>s.nama===it.jenis); const h=m?m.harga:0; const kg=parseFloat(it.kg); return {jenis:it.jenis,kg,harga:h,total:kg*h}});
-  const total=detail.reduce((a,b)=>a+b.total,0);
-  const ket=detail.map(d=>`${d.jenis} ${d.kg}Kg`).join(" + ");
-  const trx={id:"TRX"+Date.now(),idNasabah:setorId,tanggal:new Date().toISOString(),jenis:"setor",keterangan:ket,detail,totalRp:total};
-  setTransaksi([...transaksi,trx]);
-  setNasabah(nasabah.map(n=>n.id===setorId?{...n,saldo:n.saldo+total}:n));
-  // update stok
-  let newSampah=[...sampahMaster];
-  detail.forEach(d=>{
-    newSampah=newSampah.map(s=>s.nama===d.jenis?{...s,stokKg:s.stokKg+d.kg}:s);
-  });
-  setSampahMaster(newSampah);
-  setSetorItems([{jenis:"Botol Plastik",kg:""}]);
-  alert(`✅ Setor ${validItems.length} jenis Rp ${total.toLocaleString()} sukses! Saldo & Stok update otomatis`);
-};
-
-const doTarik=()=>{
-  if(!tarikId){alert("Pilih nasabah");return}
-  const nsb=nasabah.find(n=>n.id===tarikId);
-  let totalRp=0; let ket="";
-  if(tarikMode==="tunai"){
-    if(!tarikRp){alert("Isi jumlah Rp");return}
-    totalRp=parseInt(tarikRp);
-    ket=tarikKet||"Tarik Tunai";
-  }else{
-    const valid=tukarItems.filter(it=>it.qty&&parseInt(it.qty)>0);
-    if(valid.length===0){alert("Isi qty sembako");return}
-    totalRp=valid.reduce((sum,it)=>{const m=sembakoMaster.find(s=>s.nama===it.nama); return sum+(parseInt(it.qty)||0)*(m?m.harga:0)},0);
-    ket="Tukar Sembako: "+valid.map(it=>`${it.nama} x${it.qty}`).join(", ");
-    // update stok sembako
-    let newSmb=[...sembakoMaster];
-    for(const it of valid){
-      const m=newSmb.find(s=>s.nama===it.nama);
-      if(m && m.stok < parseInt(it.qty)){alert(`Stok ${it.nama} tidak cukup! Stok: ${m.stok}`); return}
-      newSmb=newSmb.map(s=>s.nama===it.nama?{...s,stok:s.stok-parseInt(it.qty)}:s);
-    }
-    setSembakoMaster(newSmb);
-  }
-  if(!nsb||nsb.saldo<totalRp){alert(`Saldo tidak cukup! Saldo: Rp ${nsb?nsb.saldo:0} | Butuh: Rp ${totalRp}`);return}
-  const trx={id:"TRX"+Date.now(),idNasabah:tarikId,tanggal:new Date().toISOString(),jenis:"tarik",keterangan:ket+" ("+tarikMode+")",detail:[],totalRp};
-  setTransaksi([...transaksi,trx]);
-  setNasabah(nasabah.map(n=>n.id===tarikId?{...n,saldo:n.saldo-totalRp}:n));
-  setTarikRp(""); setTarikKet(""); setTukarItems([{nama:"Beras 1Kg",qty:""}]);
-  alert(`✅ Tarik ${tarikMode} Rp ${totalRp.toLocaleString()} sukses!`);
-};
-
-const exportExcel=(type)=>{
-  const wb=XLSX.utils.book_new();
-  if(type==="nasabah"||type==="semua"){
-    const ws=XLSX.utils.json_to_sheet(nasabah.map(n=>({ID:n.id,Nama:n.nama,NIK:n.nik,RT_RW:n.rt_rw,Alamat:n.alamat,Saldo:n.saldo})));
-    XLSX.utils.book_append_sheet(wb,ws,"Nasabah");
-  }
-  if(type==="transaksi"||type==="semua"){
-    const ws=XLSX.utils.json_to_sheet(transaksi.map(t=>{
-      const nsb=nasabah.find(n=>n.id===t.idNasabah);
-      return {Tanggal:new Date(t.tanggal).toLocaleString('id-ID'),ID_Nasabah:t.idNasabah,Nama:nsb?nsb.nama:'',Jenis:t.jenis,Keterangan:t.keterangan,Total_Rp:t.totalRp,Detail:(t.detail||[]).map(d=>`${d.jenis||d.nama} ${d.kg||d.qty||''}`).join('; ')};
-    }));
-    XLSX.utils.book_append_sheet(wb,ws,"Transaksi");
-  }
-  if(type==="stok"||type==="semua"){
-    const ws=XLSX.utils.json_to_sheet(sampahMaster.map(s=>({Jenis:s.nama,Harga:s.harga,Stok_Kg:s.stokKg,Nilai:s.stokKg*s.harga})));
-    XLSX.utils.book_append_sheet(wb,ws,"Stok Sampah");
-    const ws2=XLSX.utils.json_to_sheet(sembakoMaster.map(s=>({Nama:s.nama,Harga:s.harga,Stok:s.stok,Nilai:s.stok*s.harga})));
-    XLSX.utils.book_append_sheet(wb,ws2,"Stok Sembako");
-  }
-  if(type==="keuangan"||type==="semua"){
-    const ws=XLSX.utils.json_to_sheet([{Keterangan:"Total Setor Masuk",Rp:totalSetor},{Keterangan:"Total Tarik Keluar",Rp:totalTarik},{Keterangan:"Saldo Nasabah (Hutang Bank)",Rp:totalSaldo},{Keterangan:"Nilai Stok Sampah",Rp:totalNilai},{Keterangan:"Laba Bersih (Stok - Saldo)",Rp:laba},{Keterangan:"Nama Bank",Rp:identity.namaBank},{Keterangan:"Alamat",Rp:identity.alamat},{Keterangan:"PJ",Rp:identity.penanggungJawab}]);
-    XLSX.utils.book_append_sheet(wb,ws,"Keuangan");
-  }
-  XLSX.writeFile(wb, `Bank_Plastik_${type}_${new Date().toISOString().slice(0,10)}.xlsx`);
-};
+const doSetor=()=>{if(!setorId){alert("Pilih nasabah");return} const valid=setorItems.filter(it=>it.kg&&parseFloat(it.kg)>0); if(!valid.length){alert("Isi Kg");return} const detail=valid.map(it=>{const m=sampahMaster.find(s=>s.nama===it.jenis); return {jenis:it.jenis,kg:parseFloat(it.kg),harga:hb(m||{}),total:parseFloat(it.kg)*hb(m||{})}}); const total=detail.reduce((a,b)=>a+b.total,0); const ket=detail.map(d=>d.jenis+" "+d.kg+"Kg").join(" + "); const trx={id:"TRX"+Date.now(),idNasabah:setorId,tanggal:new Date().toISOString(),jenis:"setor",keterangan:ket,detail,totalRp:total}; setTransaksi([...transaksi,trx]); setNasabah(nasabah.map(n=>n.id===setorId?{...n,saldo:(n.saldo||0)+total}:n)); let ns=[...sampahMaster]; detail.forEach(d=>{ns=ns.map(s=>s.nama===d.jenis?{...s,stokKg:(s.stokKg||0)+d.kg}:s)}); setSampahMaster(ns); setSetorItems([{jenis:"Botol Plastik",kg:""}]); alert("Setor Rp "+total.toLocaleString()+" sukses!")};
+const doTarik=()=>{if(!tarikId){alert("Pilih nasabah");return} const nsb=nasabah.find(n=>n.id===tarikId); let total=0; let ket=""; if(tarikMode==="tunai"){if(!tarikRp){alert("Isi Rp");return} total=parseInt(tarikRp); ket="Tarik Tunai";}else{const valid=tukarItems.filter(it=>it.qty&&parseInt(it.qty)>0); if(!valid.length){alert("Isi qty");return} total=valid.reduce((s,it)=>{const m=sembakoMaster.find(x=>x.nama===it.nama); return s+(parseInt(it.qty)||0)*hj(m||{})},0); ket="Tukar: "+valid.map(it=>it.nama+" x"+it.qty).join(", "); let ns=[...sembakoMaster]; for(const it of valid){const m=ns.find(s=>s.nama===it.nama); if(m&&(m.stok||0)<parseInt(it.qty)){alert("Stok kurang"); return} ns=ns.map(s=>s.nama===it.nama?{...s,stok:(s.stok||0)-parseInt(it.qty)}:s)} setSembakoMaster(ns);} if(!nsb||(nsb.saldo||0)<total){alert("Saldo kurang");return} const trx={id:"TRX"+Date.now(),idNasabah:tarikId,tanggal:new Date().toISOString(),jenis:"tarik",keterangan:ket+" ("+tarikMode+")",totalRp:total}; setTransaksi([...transaksi,trx]); setNasabah(nasabah.map(n=>n.id===tarikId?{...n,saldo:(n.saldo||0)-total}:n)); setTarikRp(""); setTukarItems([{nama:"Beras 1Kg",qty:""}]); alert("Tarik sukses!")};
+const doJual=()=>{const valid=jualItems.filter(it=>it.kg&&parseFloat(it.kg)>0); if(!valid.length){alert("Isi Kg");return} for(const it of valid){const m=sampahMaster.find(s=>s.nama===it.jenis); if(m&&(m.stokKg||0)<parseFloat(it.kg)){alert(`Stok ${it.jenis} kurang!`); return}} const detail=valid.map(it=>{const m=sampahMaster.find(s=>s.nama===it.jenis); return {jenis:it.jenis,kg:parseFloat(it.kg),harga:hj(m||{}),total:parseFloat(it.kg)*hj(m||{})}}); const total=detail.reduce((a,b)=>a+b.total,0); let ns=[...sampahMaster]; detail.forEach(d=>{ns=ns.map(s=>s.nama===d.jenis?{...s,stokKg:(s.stokKg||0)-d.kg}:s)}); setSampahMaster(ns); const kas={id:"KAS"+Date.now(),tanggal:new Date().toISOString(),jenis:"jual_plastik",keterangan:"Jual ke Pengepul: "+detail.map(d=>d.jenis+" "+d.kg+"Kg").join(" + ")+(jualKet?" - "+jualKet:""),masuk:total,keluar:0}; setKasTransaksi([...kasTransaksi,kas]); setJualItems([{jenis:"Botol Plastik",kg:""}]); setJualKet(""); alert(`Jual Rp ${total.toLocaleString()} sukses!`);};
+const doBeli=()=>{const valid=beliItems.filter(it=>it.qty&&parseInt(it.qty)>0); if(!valid.length){alert("Isi Qty");return} const detail=valid.map(it=>{const m=sembakoMaster.find(s=>s.nama===it.nama); return {nama:it.nama,qty:parseInt(it.qty),harga:hb(m||{}),total:parseInt(it.qty)*hb(m||{})}}); const total=detail.reduce((a,b)=>a+b.total,0); let ns=[...sembakoMaster]; detail.forEach(d=>{ns=ns.map(s=>s.nama===d.nama?{...s,stok:(s.stok||0)+d.qty}:s)}); setSembakoMaster(ns); const kas={id:"KAS"+Date.now(),tanggal:new Date().toISOString(),jenis:"beli_sembako",keterangan:"Beli dari Grosir: "+detail.map(d=>d.nama+" x"+d.qty).join(" + ")+(beliKet?" - "+beliKet:""),masuk:0,keluar:total}; setKasTransaksi([...kasTransaksi,kas]); setBeliItems([{nama:"Beras 1Kg",qty:""}]); setBeliKet(""); alert(`Beli Rp ${total.toLocaleString()} sukses!`);};
 
 const trxBuku=buku?transaksi.filter(t=>t.idNasabah===buku.id).sort((a,b)=>new Date(a.tanggal)-new Date(b.tanggal)):[];
 let run=0; const trxRun=trxBuku.map(t=>{if(t.jenis==="setor") run+=t.totalRp; else run-=t.totalRp; return {...t,saldoAkhir:run}});
@@ -161,89 +76,196 @@ let run=0; const trxRun=trxBuku.map(t=>{if(t.jenis==="setor") run+=t.totalRp; el
 return (<div>
 <header className="bg-emerald-700 text-white p-3 flex gap-3 items-center">
 {identity.logoBase64?<img src={identity.logoBase64} className="w-12 h-12 rounded-full border-2 border-white object-cover"/>:<div className="w-12 h-12 rounded-full bg-white text-emerald-700 flex items-center justify-center font-bold">BP</div>}
-<div className="flex-1"><div className="font-bold">{identity.namaBank}</div><div className="text-xs opacity-90">Saldo Rp {totalSaldo.toLocaleString()} | Stok {totalStok}Kg | Laba Rp {laba.toLocaleString()}</div></div>
+<div className="flex-1"><div className="font-bold">{identity.namaBank} <span className="text-xs bg-white text-emerald-700 px-2 py-1 rounded-full ml-2">V9.5 FINAL</span></div><div className="text-xs opacity-90">Saldo Nasabah Rp {totalSaldo.toLocaleString()} | Kas Rp {kasSaldo.toLocaleString()} | Stok {totalStokKg}Kg</div></div>
 </header>
-<nav className="bg-white p-2 flex gap-2 overflow-x-auto scrollbar-hide sticky top-0 z-40 border-b shadow-sm">
-{tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium ${tab===t.id?'bg-emerald-600 text-white':'bg-slate-100'}`}>{t.label}</button>)}
+<nav className="bg-white p-2 flex gap-2 overflow-x-auto scrollbar-hide sticky top-0 z-40 border-b">
+{tabs.map(t=><button key={t.id} onClick={()=>setTab(t.id)} className={`px-3 py-2 rounded-full whitespace-nowrap text-xs font-medium ${tab===t.id?'bg-emerald-600 text-white':'bg-slate-100'}`}>{t.label}</button>)}
 </nav>
 <main className="p-3 space-y-3 pb-20">
+
 {tab==="dashboard"&&<div className="space-y-3">
 <div className="bg-white p-4 rounded-xl shadow">
-<div className="font-bold mb-2">Dashboard V8.6 FINAL - Tanpa Note Mengganggu ✅</div>
-<div className="text-xs text-slate-500 mb-3">Bar hijau versi di atas sudah dihapus sesuai request. Tampilan bersih.</div>
 <div className="grid grid-cols-2 gap-3">
-<div className="bg-slate-50 p-3 rounded-lg"><div className="text-xs">Nasabah</div><div className="text-xl font-bold">{nasabah.length}</div></div>
-<div className="bg-slate-50 p-3 rounded-lg"><div className="text-xs">Saldo</div><div className="font-bold">Rp {totalSaldo.toLocaleString()}</div></div>
-<div className="bg-slate-50 p-3 rounded-lg"><div className="text-xs">Stok</div><div className="font-bold">{totalStok}Kg</div><div className="text-xs">Rp {totalNilai.toLocaleString()}</div></div>
-<div className="bg-emerald-50 p-3 rounded-lg"><div className="text-xs">Laba</div><div className="font-bold text-emerald-700">Rp {laba.toLocaleString()}</div></div>
+<div className="bg-slate-50 p-4 rounded-xl"><div className="text-xs text-slate-500">Total Nasabah</div><div className="text-2xl font-bold mt-1">{nasabah.length} Org</div></div>
+<div className="bg-slate-50 p-4 rounded-xl"><div className="text-xs text-slate-500">Total Saldo</div><div className="text-xl font-bold mt-1">Rp {totalSaldo.toLocaleString()}</div></div>
+<div className="bg-orange-50 p-4 rounded-xl"><div className="text-xs">Stok Sampah</div><div className="text-2xl font-bold mt-1">{totalStokKg}Kg</div><div className="text-xs">Beli Rp {totalNilaiBeli.toLocaleString()} | Jual Rp {totalNilaiJual.toLocaleString()}</div></div>
+<div className="bg-emerald-50 p-4 rounded-xl"><div className="text-xs">Laba Bersih</div><div className="text-xl font-bold mt-1 text-emerald-700">Rp {labaBersih.toLocaleString()}</div></div>
 </div>
 </div>
-<div className="grid grid-cols-3 gap-2">
-<button onClick={()=>setTab('setor')} className="bg-emerald-600 text-white p-3 rounded-xl text-sm">♻️ Setor Multi Jenis</button>
-<button onClick={()=>setTab('tarik')} className="bg-red-500 text-white p-3 rounded-xl text-sm">💸 Tarik Tunai/Sembako</button>
-<button onClick={()=>setTab('export')} className="bg-blue-600 text-white p-3 rounded-xl text-sm">📊 Export Excel</button>
+<div className="bg-white p-4 rounded-xl shadow">
+<div className="font-bold mb-3 text-sm">⚡ Akses Cepat - Lengkap V9.5</div>
+<div className="grid grid-cols-3 gap-3">
+<button onClick={()=>setTab('setor')} className="bg-emerald-600 text-white p-4 rounded-xl flex flex-col items-center gap-1"><span className="text-2xl">♻️</span><span className="text-xs font-bold">Setor Multi Jenis</span></button>
+<button onClick={()=>setTab('tarik')} className="bg-red-500 text-white p-4 rounded-xl flex flex-col items-center gap-1"><span className="text-2xl">💸</span><span className="text-xs font-bold">Tarik Tunai / Sembako</span></button>
+<button onClick={()=>setTab('buku')} className="bg-slate-800 text-white p-4 rounded-xl flex flex-col items-center gap-1"><span className="text-2xl">📒</span><span className="text-xs font-bold">Buku Tabungan</span></button>
+</div>
+<div className="grid grid-cols-3 gap-3 mt-3">
+<button onClick={()=>setTab('jual')} className="bg-purple-600 text-white p-3 rounded-xl flex flex-col items-center gap-1"><span className="text-xl">💰</span><span className="text-[10px] font-bold">Jual Plastik ke Pengepul</span></button>
+<button onClick={()=>setTab('beli')} className="bg-orange-600 text-white p-3 rounded-xl flex flex-col items-center gap-1"><span className="text-xl">🛒</span><span className="text-[10px] font-bold">Beli Sembako dari Grosir</span></button>
+<button onClick={()=>setTab('export')} className="bg-blue-600 text-white p-3 rounded-xl flex flex-col items-center gap-1"><span className="text-xl">📊</span><span className="text-[10px] font-bold">Export Excel & Reset</span></button>
+</div>
 </div>
 </div>}
 
 {tab==="identitas"&&<div className="bg-white p-4 rounded-xl shadow space-y-3">
-<div className="font-bold">🏦 Identitas Bank</div>
-<div className="flex gap-3 items-center">{identity.logoBase64?<img src={identity.logoBase64} className="w-16 h-16 rounded-full border object-cover"/>:<div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center">BP</div>}<input type="file" accept="image/*" onChange={handleLogo} className="text-xs"/></div>
-<input value={identity.namaBank} onChange={e=>setIdentity({...identity,namaBank:e.target.value})} placeholder="Nama Bank" className="w-full border p-3 rounded-lg"/>
-<input value={identity.alamat} onChange={e=>setIdentity({...identity,alamat:e.target.value})} placeholder="Alamat" className="w-full border p-3 rounded-lg"/>
-<div className="grid grid-cols-2 gap-2"><input value={identity.rt_rw} onChange={e=>setIdentity({...identity,rt_rw:e.target.value})} placeholder="RT/RW" className="border p-3 rounded-lg"/><input value={identity.kelurahan} onChange={e=>setIdentity({...identity,kelurahan:e.target.value})} placeholder="Kelurahan" className="border p-3 rounded-lg"/></div>
-<input value={identity.kecamatan} onChange={e=>setIdentity({...identity,kecamatan:e.target.value})} placeholder="Kecamatan" className="w-full border p-3 rounded-lg"/>
-<input value={identity.penanggungJawab} onChange={e=>setIdentity({...identity,penanggungJawab:e.target.value})} placeholder="PJ" className="w-full border p-3 rounded-lg"/>
-<input value={identity.telp} onChange={e=>setIdentity({...identity,telp:e.target.value})} placeholder="Telp" className="w-full border p-3 rounded-lg"/>
-<button onClick={()=>alert('Simpan')} className="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold">Simpan</button>
-</div>}
-
-{tab==="nasabah"&&<div className="bg-white p-4 rounded-xl shadow">
-<div className="flex gap-2 mb-3"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari..." className="flex-1 border p-3 rounded-lg"/><button onClick={()=>{const nama=prompt('Nama:'); if(!nama)return; const id='NSB'+String(nasabah.length+1).padStart(3,'0'); setNasabah([...nasabah,{id,nama,saldo:0}]);}} className="bg-emerald-600 text-white px-4 rounded-lg">+ Baru</button></div>
-{filtered.map(n=><div key={n.id} className="border p-3 rounded-lg flex justify-between mb-2"><div><div className="font-bold">{n.nama} {n.id}</div><div className="text-emerald-600 font-bold text-sm">Rp {n.saldo.toLocaleString()}</div></div><button onClick={()=>{setBuku(n); setTab('buku')}} className="text-xs bg-emerald-50 px-2 py-1 rounded">Buku</button></div>)}
-</div>}
-
-{tab==="setor"&&<div className="bg-white p-4 rounded-xl shadow space-y-3">
-<div className="font-bold">♻️ Setor Multi Jenis V8.6 <span className="bg-yellow-200 text-xs px-2 py-1 rounded">BARU: Multi Jenis!</span></div>
-<div className="bg-green-50 border border-green-200 p-2 rounded text-xs">✅ Sekarang bisa setor beberapa jenis sekaligus dalam 1 transaksi! Contoh: Botol 2Kg + Kardus 3Kg</div>
-<select value={setorId} onChange={e=>setSetorId(e.target.value)} className="w-full border p-3 rounded-lg"><option value="">Pilih Nasabah</option>{nasabah.map(n=><option key={n.id} value={n.id}>{n.nama} - Rp {n.saldo.toLocaleString()}</option>)}</select>
-{setorItems.map((it,idx)=><div key={idx} className="flex gap-2">
-<select value={it.jenis} onChange={e=>{const a=[...setorItems]; a[idx].jenis=e.target.value; setSetorItems(a)}} className="flex-1 border p-3 rounded-lg">{sampahMaster.map(s=><option key={s.nama} value={s.nama}>{s.nama} @Rp {s.harga}</option>)}</select>
-<input type="number" value={it.kg} onChange={e=>{const a=[...setorItems]; a[idx].kg=e.target.value; setSetorItems(a)}} placeholder="Kg" className="w-24 border p-3 rounded-lg"/>
-<button onClick={()=>setSetorItems(setorItems.filter((_,i)=>i!==idx))} className="bg-red-100 text-red-600 px-3 rounded-lg">X</button>
-</div>)}
-<button onClick={()=>setSetorItems([...setorItems,{jenis:"Botol Plastik",kg:""}])} className="w-full bg-slate-100 py-2 rounded-lg text-sm">+ Tambah Jenis Lain</button>
-<div className="bg-emerald-50 border-2 border-emerald-300 p-3 rounded-lg font-bold text-center">Total Setor: Rp {calcSetorTotal().toLocaleString()} ({setorItems.filter(it=>it.kg).length} jenis)</div>
-<button onClick={doSetor} className="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold">✅ Simpan Setoran Multi Jenis</button>
-</div>}
-
-{tab==="tarik"&&<div className="bg-white p-4 rounded-xl shadow space-y-3">
-<div className="font-bold">💸 Tarik V8.6 - Tunai & Tukar Sembako <span className="bg-yellow-200 text-xs px-2 py-1 rounded">BARU: 2 Mode!</span></div>
-<select value={tarikId} onChange={e=>setTarikId(e.target.value)} className="w-full border p-3 rounded-lg"><option value="">Pilih Nasabah</option>{nasabah.map(n=><option key={n.id} value={n.id}>{n.nama} - Rp {n.saldo.toLocaleString()}</option>)}</select>
-<div className="flex gap-2">
-<button onClick={()=>setTarikMode('tunai')} className={`flex-1 py-3 rounded-lg font-bold ${tarikMode==='tunai'?'bg-emerald-600 text-white':'bg-slate-100'}`}>💵 Tunai</button>
-<button onClick={()=>setTarikMode('sembako')} className={`flex-1 py-3 rounded-lg font-bold ${tarikMode==='sembako'?'bg-emerald-600 text-white':'bg-slate-100'}`}>🛒 Tukar Sembako</button>
+<div className="font-bold">🏦 Identitas Bank Lengkap V9.5</div>
+<div className="flex gap-3 items-center p-3 bg-slate-50 rounded-xl">
+{identity.logoBase64?<img src={identity.logoBase64} className="w-20 h-20 rounded-full border-2 border-emerald-300 object-cover"/>:<div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center font-bold">BP</div>}
+<div className="flex-1"><input type="file" accept="image/*" onChange={handleLogo} className="text-xs w-full"/><div className="text-[10px] text-slate-500 mt-1">Logo</div></div>
 </div>
-{tarikMode==="tunai"&&<div className="space-y-2">
-<input type="number" value={tarikRp} onChange={e=>setTarikRp(e.target.value)} placeholder="Jumlah Rp tunai" className="w-full border p-3 rounded-lg"/>
-<input value={tarikKet} onChange={e=>setTarikKet(e.target.value)} placeholder="Keterangan" className="w-full border p-3 rounded-lg"/>
+<div className="space-y-2">
+<div><label className="text-xs font-bold">Nama Bank</label><input value={identity.namaBank} onChange={e=>setIdentity({...identity,namaBank:e.target.value})} className="w-full border p-3 rounded-lg mt-1 text-sm"/></div>
+<div><label className="text-xs font-bold">Alamat Lengkap</label><input value={identity.alamat} onChange={e=>setIdentity({...identity,alamat:e.target.value})} className="w-full border p-3 rounded-lg mt-1 text-sm"/></div>
+<div className="grid grid-cols-2 gap-2"><div><label className="text-xs font-bold">RT/RW</label><input value={identity.rt_rw} onChange={e=>setIdentity({...identity,rt_rw:e.target.value})} className="w-full border p-3 rounded-lg mt-1 text-sm"/></div><div><label className="text-xs font-bold">Kelurahan</label><input value={identity.kelurahan} onChange={e=>setIdentity({...identity,kelurahan:e.target.value})} className="w-full border p-3 rounded-lg mt-1 text-sm"/></div></div>
+<div className="grid grid-cols-2 gap-2"><div><label className="text-xs font-bold">Kecamatan</label><input value={identity.kecamatan} onChange={e=>setIdentity({...identity,kecamatan:e.target.value})} className="w-full border p-3 rounded-lg mt-1 text-sm"/></div><div><label className="text-xs font-bold">Kabupaten</label><input value={identity.kabupaten} onChange={e=>setIdentity({...identity,kabupaten:e.target.value})} className="w-full border p-3 rounded-lg mt-1 text-sm"/></div></div>
+<div><label className="text-xs font-bold">Penanggung Jawab</label><input value={identity.penanggungJawab} onChange={e=>setIdentity({...identity,penanggungJawab:e.target.value})} className="w-full border p-3 rounded-lg mt-1 text-sm"/></div>
+<div><label className="text-xs font-bold">No Telp / WA</label><input value={identity.telp} onChange={e=>setIdentity({...identity,telp:e.target.value})} className="w-full border p-3 rounded-lg mt-1 text-sm"/></div>
+</div>
+<button onClick={()=>alert('Identitas disimpan!')} className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold">💾 Simpan</button>
 </div>}
-{tarikMode==="sembako"&&<div className="space-y-2">
-<div className="bg-blue-50 border p-2 rounded text-xs">Pilih sembako, stok akan berkurang otomatis. Total Rp dipotong dari saldo nasabah.</div>
-{tukarItems.map((it,idx)=><div key={idx} className="flex gap-2">
-<select value={it.nama} onChange={e=>{const a=[...tukarItems]; a[idx].nama=e.target.value; setTukarItems(a)}} className="flex-1 border p-3 rounded-lg">{sembakoMaster.map(s=><option key={s.nama} value={s.nama}>{s.nama} @Rp {s.harga} (Stok {s.stok})</option>)}</select>
-<input type="number" value={it.qty} onChange={e=>{const a=[...tukarItems]; a[idx].qty=e.target.value; setTukarItems(a)}} placeholder="Qty" className="w-20 border p-3 rounded-lg"/>
-<button onClick={()=>setTukarItems(tukarItems.filter((_,i)=>i!==idx))} className="bg-red-100 text-red-600 px-3 rounded-lg">X</button>
+
+{tab==="master"&&<div className="space-y-3">
+<div className="bg-white p-4 rounded-xl shadow">
+<div className="font-bold mb-2 text-sm">♻️ Master Sampah - Edit Harga Beli & Jual V9.5 ✅</div>
+<div className="text-xs bg-yellow-50 border p-2 rounded mb-2">Harga Beli dari nasabah, Harga Jual ke pengepul. Edit di sini, langsung ngaruh ke Setor & Jual!</div>
+{sampahMaster.map((s,i)=><div key={i} className="flex gap-1 mb-2 items-center">
+<input value={s.nama} onChange={e=>{const a=[...sampahMaster]; a[i].nama=e.target.value; setSampahMaster(a)}} className="flex-1 border p-2 rounded text-xs"/>
+<input type="number" value={hb(s)} onChange={e=>{const a=[...sampahMaster]; a[i].hargaBeli=parseInt(e.target.value)||0; setSampahMaster(a)}} className="w-20 border p-2 rounded text-xs" placeholder="Beli"/>
+<input type="number" value={hj(s)} onChange={e=>{const a=[...sampahMaster]; a[i].hargaJual=parseInt(e.target.value)||0; setSampahMaster(a)}} className="w-20 border p-2 rounded text-xs bg-purple-50" placeholder="Jual"/>
+<span className="text-xs w-8">{s.stokKg||0}Kg</span>
+<button onClick={()=>setSampahMaster(sampahMaster.filter((_,idx)=>idx!==i))} className="bg-red-100 px-2 py-2 rounded text-xs">X</button>
 </div>)}
-<button onClick={()=>setTukarItems([...tukarItems,{nama:"Beras 1Kg",qty:""}])} className="w-full bg-slate-100 py-2 rounded-lg text-sm">+ Tambah Sembako</button>
-<div className="bg-blue-50 border-2 border-blue-300 p-3 rounded-lg font-bold text-center">Total Tukar: Rp {calcTukarTotal().toLocaleString()}</div>
+<button onClick={()=>setSampahMaster([...sampahMaster,{nama:"Baru",hargaBeli:1000,hargaJual:2000,stokKg:0}])} className="w-full bg-emerald-50 py-2 rounded border font-bold text-xs">+ Tambah Sampah</button>
+</div>
+<div className="bg-white p-4 rounded-xl shadow">
+<div className="font-bold mb-2 text-sm">🛒 Master Sembako - Edit Harga Jual ✅</div>
+<div className="text-xs bg-blue-50 border p-2 rounded mb-2">Harga Beli dari grosir & Harga Jual ke nasabah. Edit di sini!</div>
+{sembakoMaster.map((s,i)=><div key={i} className="flex gap-1 mb-2 items-center">
+<input value={s.nama} onChange={e=>{const a=[...sembakoMaster]; a[i].nama=e.target.value; setSembakoMaster(a)}} className="flex-1 border p-2 rounded text-xs"/>
+<input type="number" value={hb(s)} onChange={e=>{const a=[...sembakoMaster]; a[i].hargaBeli=parseInt(e.target.value)||0; setSembakoMaster(a)}} className="w-20 border p-2 rounded text-xs" placeholder="Beli"/>
+<input type="number" value={hj(s)} onChange={e=>{const a=[...sembakoMaster]; a[i].hargaJual=parseInt(e.target.value)||0; setSembakoMaster(a)}} className="w-20 border p-2 rounded text-xs bg-emerald-50 font-bold" placeholder="Jual"/>
+<input type="number" value={s.stok||0} onChange={e=>{const a=[...sembakoMaster]; a[i].stok=parseInt(e.target.value)||0; setSembakoMaster(a)}} className="w-14 border p-2 rounded text-xs"/>
+<button onClick={()=>setSembakoMaster(sembakoMaster.filter((_,idx)=>idx!==i))} className="bg-red-100 px-2 py-2 rounded text-xs">X</button>
+</div>)}
+<button onClick={()=>setSembakoMaster([...sembakoMaster,{nama:"Baru",hargaBeli:10000,hargaJual:12000,stok:10}])} className="w-full bg-blue-50 py-2 rounded border font-bold text-xs">+ Tambah Sembako</button>
+</div>
 </div>}
-<button onClick={doTarik} className="w-full bg-red-600 text-white py-3 rounded-lg font-bold">💸 Proses Tarik {tarikMode==='tunai'?'Tunai':'Sembako'}</button>
+
+{tab==="laporan"&&<div className="space-y-3">
+<div className="bg-white p-4 rounded-xl shadow">
+<div className="font-bold mb-2 text-sm">📊 Laporan Transaksi Lengkap V9.5 ✅</div>
+<div className="text-xs bg-green-50 border p-2 rounded mb-2">Semua transaksi setor, tarik, jual plastik, beli sembako muncul di sini.</div>
+<div className="space-y-2 max-h-96 overflow-auto">
+{transaksi.slice().reverse().map(t=>{
+  const nsb=nasabah.find(n=>n.id===t.idNasabah);
+  return <div key={t.id} className="border p-2 rounded text-xs flex justify-between">
+    <div><div className="font-bold">{nsb?nsb.nama:t.idNasabah} - {t.jenis.toUpperCase()}</div><div>{t.keterangan}</div><div className="text-[10px] text-slate-400">{new Date(t.tanggal).toLocaleString('id-ID')}</div></div>
+    <div className={`font-bold ${t.jenis==='setor'?'text-green-600':'text-red-600'}`}>{t.jenis==='setor'?'+':'-'}Rp {t.totalRp.toLocaleString()}</div>
+  </div>
+})}
+{kasTransaksi.slice().reverse().filter(k=>k.jenis!=='modal_awal').map(k=><div key={k.id} className="border p-2 rounded text-xs flex justify-between bg-purple-50">
+  <div><div className="font-bold">{k.jenis.replace('_',' ').toUpperCase()}</div><div>{k.keterangan}</div><div className="text-[10px] text-slate-400">{new Date(k.tanggal).toLocaleString('id-ID')}</div></div>
+  <div className="text-right"><div className="text-green-600 font-bold">+Rp {(k.masuk||0).toLocaleString()}</div><div className="text-red-600 font-bold">-Rp {(k.keluar||0).toLocaleString()}</div></div>
+</div>)}
+</div>
+</div>
 </div>}
 
 {tab==="stok"&&<div className="space-y-3">
-<div className="bg-white p-4 rounded-xl shadow">
-<div className="font-bold mb-3">📦 Stok Sampah</div>
-<table className="w-full text-sm"><thead><tr className="bg-slate-100"><th className="p-2 text-left">Jenis</th><th className="p-2">Kg</th><th className="p-2">Harga</th><th className="p-2 text-right">Nilai</th></tr></thead><tbody>{sampahMaster.map(s=><tr key={s.nama} className="border-b"><td className="p-2">{s.nama}</td><td className="p-2 text-center font-bold">{s.stokKg}</td><td className="p-2 text-center">Rp {s.harga}</td><td className="p-2 text-right">Rp {(s.stokKg*s.harga).toLocaleString()}</td></tr>)}</tbody></table>
+<div className="bg-white p-4 rounded-xl shadow"><div className="font-bold mb-2 text-sm">📦 Stok Sampah</div><table className="w-full text-xs"><thead><tr className="bg-slate-100"><th className="p-2 text-left">Jenis</th><th className="p-2">Beli</th><th className="p-2">Jual</th><th className="p-2">Kg</th></tr></thead><tbody>{sampahMaster.map(s=><tr key={s.nama} className="border-b"><td className="p-2">{s.nama}</td><td className="p-2 text-center">{hb(s)}</td><td className="p-2 text-center font-bold text-purple-600">{hj(s)}</td><td className="p-2 text-center font-bold">{s.stokKg||0}</td></tr>)}</tbody></table></div>
+<div className="bg-white p-4 rounded-xl shadow"><div className="font-bold mb-2 text-sm">🛒 Stok Sembako</div><table className="w-full text-xs"><thead><tr className="bg-slate-100"><th className="p-2 text-left">Nama</th><th className="p-2">Beli</th><th className="p-2">Jual</th><th className="p-2">Stok</th></tr></thead><tbody>{sembakoMaster.map(s=><tr key={s.nama} className="border-b"><td className="p-2">{s.nama}</td><td className="p-2 text-center">{hb(s)}</td><td className="p-2 text-center font-bold text-emerald-600">{hj(s)}</td><td className="p-2 text-center font-bold">{s.stok||0}</td></tr>)}</tbody></table></div>
+</div>}
+
+{tab==="jual"&&<div className="bg-white p-4 rounded-xl shadow space-y-3"><div className="font-bold text-sm">💰 Jual Plastik ke Pengepul</div><div className="bg-purple-50 border p-2 rounded text-xs">Kas: Rp {kasSaldo.toLocaleString()}</div>{jualItems.map((it,idx)=><div key={idx} className="flex gap-2"><select value={it.jenis} onChange={e=>{const a=[...jualItems]; a[idx].jenis=e.target.value; setJualItems(a)}} className="flex-1 border p-3 rounded-lg text-xs">{sampahMaster.map(s=><option key={s.nama} value={s.nama}>{s.nama} Stok {s.stokKg||0}Kg Jual {hj(s)}</option>)}</select><input type="number" value={it.kg} onChange={e=>{const a=[...jualItems]; a[idx].kg=e.target.value; setJualItems(a)}} placeholder="Kg" className="w-20 border p-3 rounded-lg text-xs"/><button onClick={()=>setJualItems(jualItems.filter((_,i)=>i!==idx))} className="bg-red-100 px-3 rounded">X</button></div>)}<button onClick={()=>setJualItems([...jualItems,{jenis:"Botol Plastik",kg:""}])} className="w-full bg-slate-100 py-2 rounded text-xs">+ Tambah</button><div className="bg-purple-50 border-2 border-purple-300 p-3 rounded font-bold text-center">Total Jual: Rp {calcJual().toLocaleString()}</div><input value={jualKet} onChange={e=>setJualKet(e.target.value)} placeholder="Pengepul..." className="w-full border p-3 rounded-lg text-xs"/><button onClick={doJual} className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold">Simpan Jual</button></div>}
+{tab==="beli"&&<div className="bg-white p-4 rounded-xl shadow space-y-3"><div className="font-bold text-sm">🛒 Beli Sembako dari Grosir</div><div className="bg-orange-50 border p-2 rounded text-xs">Kas: Rp {kasSaldo.toLocaleString()}</div>{beliItems.map((it,idx)=><div key={idx} className="flex gap-2"><select value={it.nama} onChange={e=>{const a=[...beliItems]; a[idx].nama=e.target.value; setBeliItems(a)}} className="flex-1 border p-3 rounded-lg text-xs">{sembakoMaster.map(s=><option key={s.nama} value={s.nama}>{s.nama} Stok {s.stok||0} Beli {hb(s)}</option>)}</select><input type="number" value={it.qty} onChange={e=>{const a=[...beliItems]; a[idx].qty=e.target.value; setBeliItems(a)}} placeholder="Qty" className="w-16 border p-3 rounded-lg text-xs"/><button onClick={()=>setBeliItems(beliItems.filter((_,i)=>i!==idx))} className="bg-red-100 px-3 rounded">X</button></div>)}<button onClick={()=>setBeliItems([...beliItems,{nama:"Beras 1Kg",qty:""}])} className="w-full bg-slate-100 py-2 rounded text-xs">+ Tambah</button><div className="bg-orange-50 border-2 border-orange-300 p-3 rounded font-bold text-center">Total Beli: Rp {calcBeli().toLocaleString()}</div><input value={beliKet} onChange={e=>setBeliKet(e.target.value)} placeholder="Grosir..." className="w-full border p-3 rounded-lg text-xs"/><button onClick={doBeli} className="w-full bg-orange-600 text-white py-3 rounded-lg font-bold">Simpan Beli</button></div>}
+{tab==="setor"&&<div className="bg-white p-4 rounded-xl shadow space-y-3"><div className="font-bold text-sm">♻️ Setor Multi Jenis</div><select value={setorId} onChange={e=>setSetorId(e.target.value)} className="w-full border p-3 rounded-lg text-sm"><option value="">Pilih Nasabah</option>{nasabah.map(n=><option key={n.id} value={n.id}>{n.nama} - Rp {(n.saldo||0).toLocaleString()}</option>)}</select>{setorItems.map((it,idx)=><div key={idx} className="flex gap-2"><select value={it.jenis} onChange={e=>{const a=[...setorItems]; a[idx].jenis=e.target.value; setSetorItems(a)}} className="flex-1 border p-3 rounded-lg text-xs">{sampahMaster.map(s=><option key={s.nama} value={s.nama}>{s.nama} @Rp {hb(s)}</option>)}</select><input type="number" value={it.kg} onChange={e=>{const a=[...setorItems]; a[idx].kg=e.target.value; setSetorItems(a)}} placeholder="Kg" className="w-20 border p-3 rounded-lg text-xs"/><button onClick={()=>setSetorItems(setorItems.filter((_,i)=>i!==idx))} className="bg-red-100 px-2 rounded">X</button></div>)}<button onClick={()=>setSetorItems([...setorItems,{jenis:"Botol Plastik",kg:""}])} className="w-full bg-slate-100 py-2 rounded text-xs">+ Tambah Jenis</button><div className="bg-emerald-50 border-2 border-emerald-300 p-3 rounded font-bold text-center">Total: Rp {calcSetor().toLocaleString()}</div><button onClick={doSetor} className="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold">Simpan Setor</button></div>}
+{tab==="tarik"&&<div className="bg-white p-4 rounded-xl shadow space-y-3"><div className="font-bold text-sm">💸 Tarik</div><select value={tarikId} onChange={e=>setTarikId(e.target.value)} className="w-full border p-3 rounded-lg text-sm"><option value="">Pilih Nasabah</option>{nasabah.map(n=><option key={n.id} value={n.id}>{n.nama} - Rp {(n.saldo||0).toLocaleString()}</option>)}</select><div className="flex gap-2"><button onClick={()=>setTarikMode('tunai')} className={`flex-1 py-2 rounded font-bold text-xs ${tarikMode==='tunai'?'bg-emerald-600 text-white':'bg-slate-100'}`}>Tunai</button><button onClick={()=>setTarikMode('sembako')} className={`flex-1 py-2 rounded font-bold text-xs ${tarikMode==='sembako'?'bg-emerald-600 text-white':'bg-slate-100'}`}>Sembako</button></div>{tarikMode==='tunai'?<input type="number" value={tarikRp} onChange={e=>setTarikRp(e.target.value)} placeholder="Rp" className="w-full border p-3 rounded-lg text-sm"/>:<div>{tukarItems.map((it,idx)=><div key={idx} className="flex gap-2 mb-2"><select value={it.nama} onChange={e=>{const a=[...tukarItems]; a[idx].nama=e.target.value; setTukarItems(a)}} className="flex-1 border p-3 rounded-lg text-xs">{sembakoMaster.map(s=><option key={s.nama} value={s.nama}>{s.nama} @Rp {hj(s)} Stok {s.stok||0}</option>)}</select><input type="number" value={it.qty} onChange={e=>{const a=[...tukarItems]; a[idx].qty=e.target.value; setTukarItems(a)}} placeholder="Qty" className="w-16 border p-3 rounded-lg text-xs"/><button onClick={()=>setTukarItems(tukarItems.filter((_,i)=>i!==idx))} className="bg-red-100 px-3 rounded">X</button></div>)}<div className="bg-blue-50 p-2 rounded font-bold text-center text-xs">Total: Rp {calcTukar().toLocaleString()}</div></div>}<button onClick={doTarik} className="w-full bg-red-600 text-white py-3 rounded-lg font-bold text-sm">Proses Tarik</button></div>}
+{tab==="buku"&&<div className="space-y-3"><div className="bg-white p-4 rounded-xl shadow no-print"><div className="font-bold text-sm">📒 Buku Tabungan</div><input value={search} onChange={e=>{setSearch(e.target.value); setBuku(null)}} placeholder="Cari..." className="w-full border p-3 rounded-lg mt-2 text-sm"/>{search&&!buku&&<div className="border rounded max-h-40 overflow-auto mt-2">{filtered.map(n=><div key={n.id} onClick={()=>{setBuku(n); setSearch('')}} className="p-2 border-b cursor-pointer text-sm">{n.nama}</div>)}</div>}</div>{buku&&<div className="bg-white p-6 rounded-xl shadow"><div className="text-center border-b-2 border-emerald-700 pb-3 mb-3"><div className="font-bold">{identity.namaBank}</div><div className="text-xs">{identity.alamat} RT/RW {identity.rt_rw}</div><div className="font-bold text-emerald-700 mt-2">BUKU TABUNGAN</div></div><table className="w-full text-xs border"><thead><tr className="bg-emerald-700 text-white"><th className="p-2 border">Tgl</th><th className="p-2 border">Ket</th><th className="p-2 border">Saldo</th></tr></thead><tbody>{trxRun.map(t=><tr key={t.id} className="border-b"><td className="p-2 border">{new Date(t.tanggal).toLocaleDateString('id-ID')}</td><td className="p-2 border">{t.keterangan}</td><td className="p-2 border text-right font-bold">Rp {t.saldoAkhir.toLocaleString()}</td></tr>)}</tbody></table><div className="mt-8 flex justify-between text-xs"><div className="text-center"><div>Mengetahui,</div><div className="mt-16 border-t pt-2 px-6 font-bold">{identity.penanggungJawab}</div></div><div className="text-center"><div>Nasabah,</div><div className="mt-16 border-t pt-2 px-6 font-bold">{buku.nama}</div></div></div><button onClick={()=>window.print()} className="w-full bg-slate-800 text-white py-3 rounded mt-6 no-print">Cetak</button></div>}</div>}
+{tab==="export"&&<div className="space-y-3">
+<div className="bg-white p-4 rounded-xl shadow space-y-2">
+<div className="font-bold text-sm">📊 Export Excel V9.5 FINAL ✅</div>
+<button onClick={()=>{
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.json_to_sheet(nasabah.map(n=>({ID:n.id,Nama:n.nama,Saldo:n.saldo||0})));
+  XLSX.utils.book_append_sheet(wb,ws,"Nasabah");
+  XLSX.writeFile(wb,"Bank_Plastik_Nasabah.xlsx");
+}} className="w-full bg-emerald-600 text-white py-3 rounded-lg text-sm font-bold">📥 Export Nasabah (Saldo)</button>
+<button onClick={()=>{
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.json_to_sheet(transaksi.map(t=>{const nsb=nasabah.find(n=>n.id===t.idNasabah); return {Tanggal:new Date(t.tanggal).toLocaleString('id-ID'),Nama:nsb?nsb.nama:'',Jenis:t.jenis,Keterangan:t.keterangan,Total:t.totalRp}}));
+  XLSX.utils.book_append_sheet(wb,ws,"Transaksi");
+  XLSX.writeFile(wb,"Bank_Plastik_Transaksi.xlsx");
+}} className="w-full bg-blue-600 text-white py-3 rounded-lg text-sm font-bold">📥 Export Transaksi Lengkap</button>
+<button onClick={()=>{
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.json_to_sheet(sampahMaster.map(s=>({Jenis:s.nama,Beli:hb(s),Jual:hj(s),StokKg:s.stokKg||0})));
+  XLSX.utils.book_append_sheet(wb,ws1,"Stok Sampah");
+  const ws2=XLSX.utils.json_to_sheet(sembakoMaster.map(s=>({Nama:s.nama,Beli:hb(s),Jual:hj(s),Stok:s.stok||0})));
+  XLSX.utils.book_append_sheet(wb,ws2,"Stok Sembako");
+  XLSX.writeFile(wb,"Bank_Plastik_Stok.xlsx");
+}} className="w-full bg-orange-500 text-white py-3 rounded-lg text-sm font-bold">📥 Export Stok Sampah & Sembako</button>
+<button onClick={()=>{
+  const wb=XLSX.utils.book_new();
+  const ws1=XLSX.utils.json_to_sheet(kasTransaksi.map(k=>({Tanggal:new Date(k.tanggal).toLocaleString('id-ID'),Jenis:k.jenis,Keterangan:k.keterangan,Masuk:k.masuk||0,Keluar:k.keluar||0})));
+  XLSX.utils.book_append_sheet(wb,ws1,"Kas");
+  const ws2=XLSX.utils.json_to_sheet([{Keterangan:"Kas Masuk",Rp:kasMasuk},{Keterangan:"Kas Keluar",Rp:kasKeluar},{Keterangan:"Saldo Kas",Rp:kasSaldo},{Keterangan:"Saldo Nasabah",Rp:totalSaldo},{Keterangan:"Laba Bersih",Rp:labaBersih}]);
+  XLSX.utils.book_append_sheet(wb,ws2,"Keuangan");
+  XLSX.writeFile(wb,"Bank_Plastik_Keuangan.xlsx");
+}} className="w-full bg-purple-600 text-white py-3 rounded-lg text-sm font-bold">📥 Export Keuangan & Laba</button>
+<button onClick={()=>{
+  const wb=XLSX.utils.book_new();
+  const wsN=XLSX.utils.json_to_sheet(nasabah.map(n=>({ID:n.id,Nama:n.nama,Saldo:n.saldo||0})));
+  XLSX.utils.book_append_sheet(wb,wsN,"Nasabah");
+  const wsT=XLSX.utils.json_to_sheet(transaksi.map(t=>{const nsb=nasabah.find(n=>n.id===t.idNasabah); return {Tanggal:new Date(t.tanggal).toLocaleString('id-ID'),Nama:nsb?nsb.nama:'',Jenis:t.jenis,Keterangan:t.keterangan,Total:t.totalRp}}));
+  XLSX.utils.book_append_sheet(wb,wsT,"Transaksi");
+  const wsS=XLSX.utils.json_to_sheet(sampahMaster.map(s=>({Jenis:s.nama,Beli:hb(s),Jual:hj(s),StokKg:s.stokKg||0})));
+  XLSX.utils.book_append_sheet(wb,wsS,"Stok Sampah");
+  const wsSb=XLSX.utils.json_to_sheet(sembakoMaster.map(s=>({Nama:s.nama,Beli:hb(s),Jual:hj(s),Stok:s.stok||0})));
+  XLSX.utils.book_append_sheet(wb,wsSb,"Stok Sembako");
+  const wsK=XLSX.utils.json_to_sheet(kasTransaksi.map(k=>({Tanggal:new Date(k.tanggal).toLocaleString('id-ID'),Jenis:k.jenis,Keterangan:k.keterangan,Masuk:k.masuk||0,Keluar:k.keluar||0})));
+  XLSX.utils.book_append_sheet(wb,wsK,"Kas");
+  XLSX.writeFile(wb,"Bank_Plastik_SEMUA_5_Sheet.xlsx");
+}} className="w-full bg-slate-800 text-white py-4 rounded-xl text-sm font-bold">📥 Export SEMUA (5 Sheet) - Paling Lengkap!</button>
 </div>
-<div className="bg-white p-4 rounded-xl shadow">
-<div className="font-bold mb-3"
+<div className="bg-white p-4 rounded-xl shadow space-y-3 border-2 border-red-200">
+<div className="font-bold text-red-700 text-sm">⚠️ Reset Data - Lengkap V9.5 ✅</div>
+<button onClick={()=>{
+  if(!confirm('Reset Transaksi & Saldo & Stok jadi 0? Nasabah tetap ada.')) return;
+  const code=prompt('Ketik HAPUS:');
+  if(code!=='HAPUS') return;
+  setTransaksi([]);
+  setKasTransaksi([{id:"KAS"+Date.now(),tanggal:new Date().toISOString(),jenis:"modal_awal",keterangan:"Modal Awal setelah reset",masuk:kasSaldo,keluar:0}]);
+  setNasabah(nasabah.map(n=>({...n,saldo:0})));
+  setSampahMaster(sampahMaster.map(s=>({...s,stokKg:0})));
+  setSembakoMaster(sembakoMaster.map(s=>({...s,stok:0})));
+  alert('Reset Transaksi selesai!');
+}} className="w-full bg-orange-600 text-white py-3 rounded-lg text-sm font-bold">🔄 Reset Transaksi & Saldo & Stok Jadi 0</button>
+<button onClick={()=>{
+  if(!confirm('Reset NASABAH & Transaksi? Semua nasabah hilang!')) return;
+  const code=prompt('Ketik HAPUS NASABAH:');
+  if(code!=='HAPUS NASABAH') return;
+  setNasabah([]);
+  setTransaksi([]);
+  setSampahMaster(sampahMaster.map(s=>({...s,stokKg:0})));
+  alert('Nasabah dihapus!');
+}} className="w-full bg-red-600 text-white py-3 rounded-lg text-sm font-bold">🗑️ Reset SEMUA Nasabah & Transaksi</button>
+<button onClick={()=>{
+  if(!confirm('RESET TOTAL APLIKASI? Kembali ke awal!')) return;
+  const code=prompt('Ketik RESET TOTAL:');
+  if(code!=='RESET TOTAL') return;
+  localStorage.clear(); location.reload();
+}} className="w-full bg-black text-white py-4 rounded-lg text-sm font-bold">💥 RESET TOTAL APLIKASI</button>
+</div>
+</div>}
+
+{tab==="nasabah"&&<div className="bg-white p-4 rounded-xl shadow"><div className="flex gap-2 mb-3"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Cari..." className="flex-1 border p-3 rounded-lg text-sm"/><button onClick={()=>{const n=prompt('Nama:'); if(!n)return; setNasabah([...nasabah,{id:'NSB'+String(nasabah.length+1).padStart(3,'0'),nama:n,saldo:0}])}} className="bg-emerald-600 text-white px-4 rounded-lg text-sm">+ Baru</button></div>{filtered.map(n=><div key={n.id} className="border p-3 rounded flex justify-between mb-2"><div><div className="font-bold text-sm">{n.nama}</div><div className="text-xs">Rp {(n.saldo||0).toLocaleString()}</div></div><button onClick={()=>{setBuku(n); setTab('buku')}} className="text-xs bg-emerald-50 px-2 py-1 rounded">Buku</button></div>)}</div>}
+{tab==="keuangan"&&<div className="bg-white p-4 rounded-xl shadow"><div className="font-bold text-sm">Keuangan</div><div className="text-xs mt-2">Kas: Rp {kasSaldo.toLocaleString()} | Saldo Nasabah: Rp {totalSaldo.toLocaleString()} | Laba: Rp {labaBersih.toLocaleString()}</div></div>}
+
+</main>
+</div>
+);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
