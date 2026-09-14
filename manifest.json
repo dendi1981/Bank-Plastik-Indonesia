@@ -1,22 +1,20 @@
 {
   "name": "Bank Plastik Soreang",
   "short_name": "Bank Plastik",
-  "description": "Bank Plastik Soreang V9.5 FINAL INSTALLABLE",
-  "start_url": "./index.html?v=95install_fix",
-  "scope": "./",
+  "start_url": "/Bank-Plastik-Soreang/",
+  "scope": "/Bank-Plastik-Soreang/",
+  "id": "/Bank-Plastik-Soreang/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#059669",
-  "orientation": "portrait",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "/Bank-Plastik-Soreang/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "/Bank-Plastik-Soreang/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
